@@ -53,17 +53,22 @@ export default {
     // 获取原始响应的 headers
     const originalHeaders = new Headers(response.headers);
     
-    // 组合两个 CSP 指令
-    const cspDirective = "default-src *; style-src 'self' 'unsafe-inline' *";
-
+    // 组合 CSP 指令
+    //const cspDirective = "default-src *;  font-src *; style-src 'self' 'unsafe-inline' *";
+    const cspDirective = "";
 
     // 设置 Content Security Policy
     originalHeaders.set('Content-Security-Policy', cspDirective);
-
+    originalHeaders.set('host',target_url.replace('https://','').replace('http://',''))
+    
     var text: string = await response.text();
     // 将返回的内容的 https:// 替换为 https://${domain}/
     text = text.replace(/https:\/\//g, `https://${domain}/`);
-            
+    // 将绝对路径链接设置为https://${domain}/${target_url}/
+    text = text.replace(/href="\//g, `href="https://${domain}/${target_url.replace('https://','')}/`);
+    // 将gstatic替换为原来的地址
+    const gstaticFontsRegex = new RegExp(`https://${domain}/fonts.gstatic.com`, 'g');
+    text = text.replace(gstaticFontsRegex,`https://fonts.gstatic.com`)
     // 创建一个新的响应对象，包含了更新后的 headers 和文本内容
     let newResponse = new Response(text, {
       status: response.status,
